@@ -16,7 +16,7 @@ class AUSurchargeTier(models.Model):
     class Meta:
         verbose_name = "AU Surcharge Tier"
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s ($%s)" % (self.name, self.surcharge)
 
 
@@ -28,7 +28,7 @@ class AUZone(models.Model):
         verbose_name = "AU Zone"
         ordering = ['name']
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -39,7 +39,7 @@ class AUPostCode(Location):
     class Meta:
         verbose_name = "AU Post Code"
 
-    def __unicode__(self):
+    def __str__(self):
         return self.postcode
 
 
@@ -55,7 +55,7 @@ class AUFee(models.Model):
     class Meta:
         verbose_name = "AU Fee"
 
-    def __unicode__(self):
+    def __str__(self):
         if not self.percentage:
             return "%s ($%.2f)" % (self.name, self.fee)
         return "%s (%.2f%%)" % (self.name, self.fee)
@@ -75,7 +75,7 @@ class Rate(models.Model):
         unique_together = (('from_zone', 'to_zone',))
         verbose_name = "AU Rate"
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s -> %s" % (self.from_zone.name, self.to_zone.name)
 
 
@@ -84,7 +84,7 @@ class UKShippingProvider(models.Model):
 
     class Meta:
         verbose_name = "UK Shipping Provider"
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.name
 
 
@@ -98,7 +98,7 @@ class UKRate(models.Model):
     weight_multiplier_rate = models.FloatField(default=0)
     weight_offset = models.FloatField(default=0)
 
-    def __unicode__(self):
+    def __str__(self):
 
         to_county_string = 'DEFAULT COUNTIES'
         if self.to_region:
@@ -133,7 +133,7 @@ class NZDistanceFactor(models.Model):
     class Meta:
         verbose_name = "NZ Distance Factor"
 
-    def __unicode__(self):
+    def __str__(self):
         return "Area #%s - %s" % (self.number, self.name)
 
 
@@ -150,7 +150,7 @@ class NZLocation(models.Model):
     class Meta:
         verbose_name = "NZ Location"
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s, %s %s (%s)" % (self.area, self.city, self.postcode, self.distance_factor)
 
 
@@ -163,7 +163,7 @@ class NZCourierRate(models.Model):
     class Meta:
         verbose_name = "NZ Courier Rate"
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s, cubic factor: %s, rate: $%s" % (self.distance_factor, self.cubic_conversion, self.rate)
 
 
@@ -176,7 +176,7 @@ class NZFreightRate(models.Model):
     class Meta:
         verbose_name = "NZ Freight Rate"
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s per tonne, %s per cubic meter" % (self.destination_group, self.tonne_rate, self.cubic_rate)
 
 
@@ -190,7 +190,7 @@ class CAFreightRate(models.Model):
         unique_together = (('from_province', 'to_province', 'to_city'),)
         verbose_name = 'CA Freight Rate'
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s primary warehouse -> %s, %s - $%.2f' % (self.from_province, self.to_city if self.to_city else '(DEFAULT)', self.to_province, self.rate)
 
 
@@ -203,7 +203,7 @@ class CAFreightMultiplier(models.Model):
     class Meta:
         verbose_name = 'CA Freight Multiplier'
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s primary warehouse - %s x %s' % (self.from_province, self.description, self.multiplier)
 
 
@@ -217,5 +217,5 @@ class CAFreightSettings(models.Model):
     class Meta:
         verbose_name = 'CA Freight Setting'
 
-    def __unicode__(self):
+    def __str__(self):
         return 'Settings for %s primary warehouse' % self.from_province

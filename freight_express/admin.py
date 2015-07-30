@@ -29,9 +29,9 @@ class AUZoneAdmin(admin.ModelAdmin):
 
 class AUFeeAdmin(admin.ModelAdmin):
     ordering = ['name']
-    list_display = ['enabled', '__unicode__']
+    list_display = ['enabled', '__str__']
     list_editable = ['enabled']
-    list_display_links = ['__unicode__']
+    list_display_links = ['__str__']
 
 
 class RateAdmin(ModelAdmin):

@@ -61,8 +61,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/technical.html#install-requires-vs-requirements-files
     install_requires=[
-        'Django>=1.6.5',
-        'South>=0.8.4',
+        'Django>=1.8.0',
         'django-celery>=3.1.10',
         'django-tastypie>=0.12.1',
     ],
