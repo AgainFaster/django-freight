@@ -1,5 +1,7 @@
 from django.conf.urls import url
+from django.conf import settings
 from tastypie.authentication import ApiKeyAuthentication
+from tastypie.authorization import DjangoAuthorization
 from tastypie.resources import ModelResource
 from tastypie.utils.urls import trailing_slash
 from unidecode import unidecode
@@ -8,26 +10,33 @@ import logging
 
 logger = logging.getLogger()
 
+
 class RateResource(ModelResource):
     class Meta:
         queryset = Rate.objects.all()
         resource_name = "rate"
         allowed_methods = ['get', 'post']
-        # authentication = ApiKeyAuthentication()
-        #authorization = DjangoAuthorization()
+        if not settings.DEBUG:
+            authentication = ApiKeyAuthentication()
+            authorization = DjangoAuthorization()
         filtering = {
-            'to_zone' : ['exact', 'iexact'],
-            'from_zone' : ['exact', 'iexact'],
+            'to_zone': ['exact', 'iexact'],
+            'from_zone': ['exact', 'iexact'],
         }
 
     def override_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/cost_au%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_cost_au'), name="api_get_cost_au"),
-            url(r"^(?P<resource_name>%s)/cost_nz%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_cost_nz'), name="api_get_cost_nz"),
-            url(r"^(?P<resource_name>%s)/cost_uk%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_cost_uk'), name="api_get_cost_uk"),
-            url(r"^(?P<resource_name>%s)/cost_ca%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_cost_ca'), name="api_get_cost_ca"),
+            url(r"^(?P<resource_name>%s)/cost_au%s$" % (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('get_cost_au'), name="api_get_cost_au"),
+            url(r"^(?P<resource_name>%s)/cost_nz%s$" % (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('get_cost_nz'), name="api_get_cost_nz"),
+            url(r"^(?P<resource_name>%s)/cost_uk%s$" % (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('get_cost_uk'), name="api_get_cost_uk"),
+            url(r"^(?P<resource_name>%s)/cost_ca%s$" % (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('get_cost_ca'), name="api_get_cost_ca"),
             # deprecated
-            url(r"^(?P<resource_name>%s)/cost%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_cost_au'), name="api_get_cost"),
+            url(r"^(?P<resource_name>%s)/cost%s$" % (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('get_cost_au'), name="api_get_cost"),
         ]
 
     def get_cost_au(self, request, **kwargs):
@@ -46,9 +55,10 @@ class RateResource(ModelResource):
         cubic_factor = float(r.get('cubic_factor', 0.0))
         from_code = r.get('from', '4300')
 
-        logger.info("Request Details: To: %s From: %s Weight: %s Cubic Factor: %s" % (to_code, from_code, weight, cubic_factor))
-        #get objects
-        #valid Postcodes get filtered on the client side.
+        logger.info(
+            "Request Details: To: %s From: %s Weight: %s Cubic Factor: %s" % (to_code, from_code, weight, cubic_factor))
+        # get objects
+        # valid Postcodes get filtered on the client side.
         to_postcode = AUPostCode.objects.get(postcode=to_code)
         from_postcode = AUPostCode.objects.get(postcode=from_code)
 
@@ -58,18 +68,19 @@ class RateResource(ModelResource):
 
         logger.info("Pulled Rate %s" % (rate,))
 
-        #do math
-        base_cost = max(rate.basic_charge + (rate.rate * max(weight, (cubic_factor * rate.cubic_conv))), rate.min_charge)
+        # do math
+        base_cost = max(rate.basic_charge + (rate.rate * max(weight, (cubic_factor * rate.cubic_conv))),
+                        rate.min_charge)
 
         logging.info("Base Rate: $%.2f" % (base_cost,))
         additions = []
 
-        #add a surcharge if the destination postcode asks for one
+        # add a surcharge if the destination postcode asks for one
         if tier:
             additions.append(tier.surcharge)
             logger.info("Adding Surcharge: %s ($%.2f)" % (tier.name, tier.surcharge))
 
-        #get additional fees
+        # get additional fees
         fees = AUFee.objects.filter(enabled=True)
         if fees:
             for fee in fees:
@@ -81,13 +92,13 @@ class RateResource(ModelResource):
                     additions.append(fee.fee)
                     logger.info("Adding Fee: %s: $%.2f" % (fee.name, fee.fee))
 
-        #add everything together
+        # add everything together
         cost = base_cost + sum(additions)
         object_list = {'cost': cost}
 
         logger.info("Returning cost: $%.2f" % (cost,))
 
-        #send it back to the response
+        # send it back to the response
         self.log_throttled_access(request)
         return self.create_response(request, object_list)
 
@@ -107,7 +118,8 @@ class RateResource(ModelResource):
         total_weight = float(r.get('total_weight', 0.0))
         cubic_meters = float(r.get('cubic_meters', 0.0))
 
-        logger.info("Request Details: to_code: %s, weight: %s, total_weight: %s, cubic_meters %s" % (to_code, weight, total_weight, cubic_meters))
+        logger.info("Request Details: to_code: %s, weight: %s, total_weight: %s, cubic_meters %s" % (
+        to_code, weight, total_weight, cubic_meters))
 
         locations = NZLocation.objects.filter(postcode=to_code)
         if total_weight <= 5:
@@ -135,7 +147,7 @@ class RateResource(ModelResource):
                        minimum_cost)
 
         object_list = {'cost': cost,
-                       'method': method }
+                       'method': method}
 
         logger.info("Returning cost: %s, Method: %s" % (cost, method))
 
@@ -159,7 +171,8 @@ class RateResource(ModelResource):
 
         weight = float(r.get('weight', 0.0))
 
-        logger.info("Request Details: from_country: %s to_country: %s to_region: %s weight: %s" % (from_country, to_country, to_region, weight))
+        logger.info("Request Details: from_country: %s to_country: %s to_region: %s weight: %s" % (
+        from_country, to_country, to_region, weight))
 
         # need to order by to_region first so that null regions (default regions) comes first
         rates = UKRate.objects.filter(max_weight__gte=weight,
@@ -186,13 +199,12 @@ class RateResource(ModelResource):
         else:
             error_message = 'Please contact us for a shipping quote.'
 
-        object_list = {'cost' : cost, 'label' : label, 'error_message' : error_message }
+        object_list = {'cost': cost, 'label': label, 'error_message': error_message}
 
         logger.info("Returning cost: %s, label: %s, error_message: %s" % (cost, label, error_message))
 
         self.log_throttled_access(request)
         return self.create_response(request, object_list)
-
 
     def get_cost_ca(self, request, **kwargs):
         method = self.method_check(request, allowed=['get', 'post'])
@@ -222,7 +234,9 @@ class RateResource(ModelResource):
         original_weight = float(r.get('weight', 0.0))
         weight = max(original_weight + rate_settings.skid_weight, rate_settings.minimum_weight)
 
-        logger.info("Request Details:\nfrom_province: %s\nto_province: %s\nto_city: %s\nweight (original): %s\nweight (adjusted): %s\nsku_list: %s" % (from_province, to_province, to_city, original_weight, weight, sku_list))
+        logger.info(
+            "Request Details:\nfrom_province: %s\nto_province: %s\nto_city: %s\nweight (original): %s\nweight (adjusted): %s\nsku_list: %s" % (
+            from_province, to_province, to_city, original_weight, weight, sku_list))
 
         # get default multiplier
         multiplier = rate_settings.default_multiplier
@@ -248,15 +262,17 @@ class RateResource(ModelResource):
                 logger.info('City rate not found for %s, using the one for %s instead.' % (to_city, unidecode(to_city)))
             else:
                 city_rate = province_records[0].rate
-                logger.info('City rate not found for %s, using default rate for province %s as city rate' % (to_city, to_province))
+                logger.info('City rate not found for %s, using default rate for province %s as city rate' % (
+                to_city, to_province))
         except:
             logger.error('No Freight Rate found for %s, %s' % (to_city, to_province))
             raise
 
-        logger.info("Applying calculation %s (weight) / 100.0 * %s (city_rate) * %s (multiplier) + %s (surcharge)" % (weight, city_rate, multiplier, rate_settings.surcharge))
+        logger.info("Applying calculation %s (weight) / 100.0 * %s (city_rate) * %s (multiplier) + %s (surcharge)" % (
+        weight, city_rate, multiplier, rate_settings.surcharge))
         cost = weight / 100.0 * city_rate * multiplier + rate_settings.surcharge
 
-        response_dict = {'cost': cost,}
+        response_dict = {'cost': cost, }
         logger.info("Returning cost: %s" % (cost,))
 
         self.log_throttled_access(request)
