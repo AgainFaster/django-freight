@@ -4,7 +4,7 @@ from .basemodel import Rate
 
 from decimal import Decimal
 
-import simplejson
+import json
 import urllib.request
 import urllib.parse
 
@@ -84,7 +84,7 @@ class FreightExpressRateRequest(Rate):
         response = urllib.request.urlopen(req)
         content = response.read()
 
-        dict = simplejson.loads(content)
+        dict = json.loads(content)
 
         logger.info("Return: %s" % (dict,))
 

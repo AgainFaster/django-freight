@@ -1,5 +1,6 @@
 import json
 from rest_framework import status
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from shipping.models import ShippingRequest, Shipment, Item
@@ -9,10 +10,12 @@ from shipping.tasks import get_shipping_rates
 
 def _response(request, summary=None, success=True):
     response_status = status.HTTP_200_OK if success else status.HTTP_500_INTERNAL_SERVER_ERROR
-    return Response({'request_id': request.DATA.get('request_id'), 'summary': summary}, status=response_status)
+    return Response({'summary': summary}, status=response_status)
 
 
 class ShippingRateRequest(APIView):
+
+    renderer_classes = (JSONRenderer,)
 
     def get(self, request, *args, **kw):
         return _response(request, 'GET is currently not implemented. Try POST.')
