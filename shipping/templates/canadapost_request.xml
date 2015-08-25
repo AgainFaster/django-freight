@@ -1,0 +1,31 @@
+{% load l10n %}
+<?xml version="1.0" encoding="UTF-8" ?>
+{#{% spaceless %}#}
+    <eparcel>
+        <language>en</language>
+        <ratesAndServicesRequest>
+            <merchantCPCID>{{cpcid}}</merchantCPCID>
+            <fromPostalCode>H2K 2N3</fromPostalCode>
+            <turnAroundTime>{{turn_around_time}}</turnAroundTime>
+            <itemsPrice>{% localize off %}{{ total_price }}{% endlocalize %}</itemsPrice>
+            <lineItems>
+                {% for item in items.all %}
+                    <item>
+                        {% for box in item.number_of_boxes %}
+                            <quantity>{{ box.0 }}</quantity>
+                            <weight>{% localize off %}{{ box.1 }}{% endlocalize %}</weight>
+                            <length>{{ item.product.length }}</length>
+                            <width>{{ item.product.width }}</width>
+                            <height>{{ item.product.height }}</height>
+                            <description>{{ item.product.name }}</description>
+                        {% endfor %}
+                    </item>
+                {% endfor %}
+            </lineItems>
+            <city>{{drop_location.city}}</city>
+            <provOrState>{{drop_location.state}}</provOrState>
+            <country>{{drop_location.country}}</country>
+            <postalCode>{{drop_location.postal_code}}</postalCode>
+        </ratesAndServicesRequest>
+    </eparcel>
+{#{% endspaceless %}#}

@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+{% spaceless %}
+<RateRequest>
+    <Constraints>
+        <Contract />
+        <Carrier />
+        <Mode />
+        <ServiceFlags />
+        <PaymentTerms />
+    </Constraints>
+    <Items>
+    {% for item in cart_items %}
+        <Item sequence="{{ forloop.counter }}" freightClass="{{ item.product.freight_class }}">
+            <Weight units="lb">{{ item.get_weight }}</Weight>
+        </Item>
+    {% endfor %}
+    </Items>
+    <Events>
+        <Event sequence="1" type="Pickup" date="{{ pickup_date }}">
+            <Location>
+                <City>{{ warehouse.address.city }}</City>
+                <State>{{ warehouse.address.state }}</State>
+                <Zip>{{ warehouse.address.postal_code }}</Zip>
+                <Country>{{ warehouse.address.country }}</Country>
+            </Location>
+        </Event>
+        <Event sequence="2" type="Drop" date="{{ drop_date }}">
+            <Location>
+                <City>{{ drop_location.city }}</City>
+                <State>{{ drop_location.state }}</State>
+                <Zip>{{ drop_location.postal_code }}</Zip>
+                <Country>{{ drop_location.country }}</Country>
+            </Location>
+        </Event>
+    </Events>
+</RateRequest>
+{% endspaceless %}

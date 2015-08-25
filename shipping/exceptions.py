@@ -1,0 +1,2 @@
+class ShippingException(Exception):
+    pass
