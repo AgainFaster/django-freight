@@ -8,9 +8,9 @@ from datetime import datetime
 from shipping.tasks import get_shipping_rates
 
 
-def _response(request, summary=None, success=True):
+def _response(summary=None, success=True):
     response_status = status.HTTP_200_OK if success else status.HTTP_500_INTERNAL_SERVER_ERROR
-    return Response({'summary': summary}, status=response_status)
+    return Response(summary, status=response_status)
 
 
 class ShippingRateRequest(APIView):
@@ -18,21 +18,21 @@ class ShippingRateRequest(APIView):
     renderer_classes = (JSONRenderer,)
 
     def get(self, request, *args, **kw):
-        return _response(request, 'GET is currently not implemented. Try POST.')
+        return _response({'error': 'GET is currently not implemented. Try POST.'})
 
     def post(self, request, *args, **kw):
 
         raw_request = request.DATA.get('request')
         if not raw_request:
-            return _response(request, 'No request data received.', False)
+            return _response({'error': 'No request data received.'}, False)
 
         shipments = raw_request.get('shipments')
         if not shipments:
-            return _response(request, 'No shipment data received.', False)
+            return _response({'error': 'No shipment data received.'}, False)
 
         destination = raw_request.get('destination')
         if not destination:
-            return _response(request, 'No destination address received.', False)
+            return _response({'error': 'No destination address received.'}, False)
 
         incoming_request = ShippingRequest.objects.create(raw_request=json.dumps(raw_request),
                                                           destination=json.dumps(raw_request.get('destination')),
@@ -61,4 +61,4 @@ class ShippingRateRequest(APIView):
         incoming_request.raw_response = incoming_request.serialize()
         incoming_request.save()
 
-        return _response(request, incoming_request.raw_response)
+        return _response(incoming_request.raw_response)

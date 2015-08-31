@@ -70,16 +70,18 @@ class Item(models.Model):
     def get_carton(self, *args):
         if not self.carton_dict:
             self.carton_dict = json.loads(self.carton)
+        carton = self.carton_dict or copy_dict(self.get_inner(), {'qty': 1}) or copy_dict(self.get_dimensions(), {'qty': 1})
         if args:
-            return int(self.carton_dict.get(args[0]))
-        return self.carton_dict
+            return int(carton.get(args[0]))
+        return carton
 
     def get_inner(self, *args):
         if not self.inner_dict:
             self.inner_dict = json.loads(self.inner)
+        inner = self.inner_dict or copy_dict(self.get_dimensions(), {'qty': 1})
         if args:
-            return int(self.inner_dict.get(args[0]))
-        return self.inner_dict
+            return int(inner.get(args[0]))
+        return inner
 
     @property
     def length(self):
@@ -125,6 +127,7 @@ class Item(models.Model):
 
     class Meta:
         app_label = "shipping"
+        get_latest_by = "id"
 
 
 class ResponseRate(models.Model):
@@ -173,3 +176,11 @@ class ResponseSurcharge(models.Model):
 
     class Meta:
         app_label = "shipping"
+
+
+def copy_dict(source_dict, diffs):
+    """Returns a copy of source_dict, updated with the new key-value
+       pairs in diffs."""
+    res = dict(source_dict) # Shallow copy, see addendum below
+    res.update(diffs)
+    return res
