@@ -5,6 +5,7 @@ import math
 from .basemodel import Rate
 
 from usps.api.ratecalculator import DomesticRateCalculator
+from usps.errors import USPSXMLError
 
 from decimal import Decimal
 from shipping.models.carriermodel import Carrier
@@ -141,14 +142,23 @@ class USPSRateRequest(Rate):
         logger.debug(request)
 
         self.shipment.carrier_request = request
-        response = connector.execute(request)
-        self.shipment.carrier_response = response
-        logger.info("USPS Rate Response")
-        logger.info(response)
-        self.shipment.save()
-        self.rates = self._parse_response(response)
 
-        return self.rates
+        response = None
+
+        try:
+            response = connector.execute(request)
+            self.shipment.carrier_response = response
+            logger.info("USPS Rate Response")
+            logger.info(response)
+        except USPSXMLError as e:
+            self.shipment.carrier_response = e
+
+        self.shipment.save()
+        if response:
+            self.rates = self._parse_response(response)
+            return self.rates
+
+        return None
 
     def _create_request(self, items, origin, destination, service="ALL"):
         destination_postal_code = destination.get('postal_code').split('-')[0]

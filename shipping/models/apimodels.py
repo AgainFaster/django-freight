@@ -109,7 +109,7 @@ class Item(models.Model):
         inner_remainder = carton_remainder % self.get_inner('qty')
 
         #if leftovers fit in an inner, put in 1 inner at the weight of the leftovers * weight
-        if inner_remainder < self.get_inner('qty'):
+        if inner_remainder and inner_remainder < self.get_inner('qty'):
             left_over = 1
             left_over_weight = inner_remainder * self.weight
         else:
