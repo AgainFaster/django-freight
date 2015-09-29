@@ -1,5 +1,6 @@
 from decimal import Decimal
 import json
+from django.contrib.auth.models import User
 from django.db import models
 from shipping.models.carriermodel import Carrier
 from .basemodel import Surcharge
@@ -10,6 +11,8 @@ class ShippingRequest(models.Model):
     destination = models.TextField()
     received = models.DateTimeField(editable=False)
     raw_response = models.TextField()
+    user = models.ForeignKey(User)
+    ip = models.IPAddressField()
 
     def __str__(self):
         return "%s: %s" % (self.id, self.received)

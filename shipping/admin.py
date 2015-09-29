@@ -119,6 +119,8 @@ class ShipmentInline(SuperInlineModelAdmin, StackedInline):
 
 class ShippingRequestAdmin(SuperModelAdmin):
     inlines = (ShipmentInline,)
+    list_display = ['__str__', 'user', 'ip']
+    list_filter = ['user', 'ip']
 
 
 admin.site.register(ShippingRequest, ShippingRequestAdmin)

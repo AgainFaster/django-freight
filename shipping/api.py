@@ -12,6 +12,13 @@ def _response(summary=None, success=True):
     response_status = status.HTTP_200_OK if success else status.HTTP_500_INTERNAL_SERVER_ERROR
     return Response(summary, status=response_status)
 
+def _get_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 class ShippingRateRequest(APIView):
 
@@ -36,7 +43,9 @@ class ShippingRateRequest(APIView):
 
         incoming_request = ShippingRequest.objects.create(raw_request=json.dumps(raw_request),
                                                           destination=json.dumps(raw_request.get('destination')),
-                                                          received=datetime.now())
+                                                          received=datetime.now(),
+                                                          user=request.user,
+                                                          ip=_get_ip(request))
 
         for warehouse_id in shipments.keys():
             shipment = shipments[warehouse_id]
