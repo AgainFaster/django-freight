@@ -12,7 +12,7 @@ class ShippingRequest(models.Model):
     received = models.DateTimeField(editable=False)
     raw_response = models.TextField()
     user = models.ForeignKey(User)
-    ip = models.IPAddressField()
+    ip = models.GenericIPAddressField()
 
     def __str__(self):
         return "%s: %s" % (self.id, self.received)
@@ -59,6 +59,7 @@ class Item(models.Model):
         self.carton_dict = {}
         self.inner_dict = {}
         self.dimensions_dict = {}
+
 
     def __str__(self):
         return "%s - %s" % (self.quantity, self.sku)
